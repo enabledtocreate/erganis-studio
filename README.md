@@ -10,10 +10,28 @@ studio/
 ├── apps/client/           # Client portal
 ├── modules/               # First-party plugins (agora, documents, …)
 ├── modules/third-party/   # External modules
-└── shared/                # Shared UI, API clients
+└── shared/                # shadcn/ui + Tailwind, API clients, icons loader
 ```
 
-Each app has its own build/deploy setup. All consume **Core Surface API** (SDK or live OpenAPI URL).
+## Shared database (Studio + Client)
+
+**Studio and Client use the same Core PostgreSQL database** via Core Surface API.
+
+- Client approvals, comments, and selections **feed directly** into the same org/project data designers see in Studio.
+- Separate deployable apps; **not** separate databases.
+- Role-based surfaces and layouts differ; data model is shared.
+
+**To refine:** How Client and Studio engage the same database in practice — API boundaries, orchestration, permissions, and conflict handling (see architecture spec §23).
+
+## Module install
+
+Enabling or upgrading a module runs **manifest-declared migrations** against Core/Studio schema (via Core migrator). See `core/contracts/schemas/module/`.
+
+## UI stack
+
+- **shadcn/ui** + **Tailwind CSS** in `shared/` (primary)
+- **Mantine** under evaluation as an alternative
+- **Icons:** free vector set loaded from a **separate asset host** (keeps repo lean)
 
 ## Dependencies
 
