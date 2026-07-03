@@ -25,7 +25,7 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 | **S-Des1** | Design | 1 | Planned | C2, C7 |
 | **S-Pr1** | Presentations | 1 | Planned | S-I1, S-Des1 |
 | **S-B1** | Build | 1 | Planned | S-D1, C3 |
-| **S-B2** | Build — Codes | 2 | Planned | C13, S-B1 |
+| **S-B2** | Build — Codes | 2 | Planned | S-B1, C2, C9 |
 | **S-B3** | Build — Space analysis | 3 | Planned | S-B2, S-I1 optional |
 | **S-Bus1** | Business | 1 | Planned | Reports S-R1 (later) |
 | **S-R1** | Reports | 1 | Planned | Multiple modules |
@@ -155,14 +155,17 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 
 ## S-B2 — Build — Codes (IBC & accessibility)
 
-**Delivers:** Designer-facing **Codes** component — layered on Core **C13 Codes provider adapter**.
+**Path:** `studio/modules/build/` (codes submodule)  
+**Delivers:** Designer-facing **Codes** domain logic — building-code rules (IBC / accessibility) owned entirely by the Build module.
 
-### Why layered
+> **Codes are module logic, not a Core service.** Building-code rules are Build's domain. The Build module owns its own schema (`build.code_rule_packs`, `build.code_sync_log`), rule storage, query API, and any external code-service integration. Core provides only generic platform primitives (orchestrator, jobs, FileStore) — it has no knowledge of IBC.
+
+### Layering (inside the Build module)
 
 IBC and accessibility standards change by edition and jurisdiction. Build must not ship static code tables. Instead:
 
-1. **Core C13** syncs and versions rule packs (external code service or publisher API via C9 jobs)
-2. **Build module** queries applicable rules for the project's jurisdiction, occupancy group, and use type
+1. **Build codes layer** syncs and versions rule packs from an external code service / publisher API, run as a **module job contribution** (`contributions.jobs`) on Core's pg-boss runtime (C9)
+2. **Build query layer** resolves applicable rules for the project's jurisdiction, occupancy group, and use type
 3. **Build UI** surfaces code requirements as actionable guidance — not legal PDFs in a drawer
 
 ### Planned capabilities
@@ -170,16 +173,16 @@ IBC and accessibility standards change by edition and jurisdiction. Build must n
 | Area | Examples |
 |------|----------|
 | **IBC** | Occupancy classification, occupant load factors, egress width mins, plumbing fixture counts by occupancy |
-| **Accessibility** | Clearances, reach ranges, turning space, door maneuvering — parallel rule family in same adapter |
+| **Accessibility** | Clearances, reach ranges, turning space, door maneuvering — parallel rule family in same store |
 | **Project context** | Building type, story count, sprinklered — filters which rule subsets apply |
 | **Edition tracking** | Show active IBC edition; warn when project edition differs from latest synced pack |
 
 ### Surfaces
 
 - `build.codes` load — applicable rule summary for current room/project
-- Envelope save for designer overrides / notes (not altering Core rule packs)
+- Envelope save for designer overrides / notes and for triggering a rule-pack sync
 
-**Core deps:** **C13** Codes provider, C9 sync jobs.
+**Core deps:** C2 orchestrator (envelope + module schema/migrations), **C9** pg-boss jobs for external sync. No Core codes service.
 
 ---
 
@@ -193,7 +196,7 @@ IBC and accessibility standards change by edition and jurisdiction. Build must n
 |-----------|---------|
 | **Room inventory** | What is in the room — furniture, fixtures, equipment (manual entry, Inventory link, or FF&E import) |
 | **Footprint & clearance** | Per-item dimensions + required clearances; stack vs plan view summaries |
-| **Occupant load** | User group / use type → occupant count via C13 IBC factors |
+| **Occupant load** | User group / use type → occupant count via S-B2 IBC load factors |
 | **Circulation** | Aisle width, door swing zones, path of travel — designer standards + code mins |
 | **Rules of thumb** | General designer standards (conference seats per area, kitchen work triangle hints, etc.) — **advisory** layer separate from binding code |
 | **Code cross-check** | Compare calculated area / egress / fixtures against S-B2 Codes rules — pass / warn / fail |
@@ -205,7 +208,7 @@ Interactive room **analysis chart** — not just a static spreadsheet:
 - **Program bar** — required area from occupancy × load factor
 - **Furniture layer** — summed item footprints + clearances
 - **Circulation layer** — remaining area vs recommended % of room
-- **Code overlay** — IBC minimums from C13 (egress, accessibility clearance) highlighted on the chart
+- **Code overlay** — IBC minimums from S-B2 (egress, accessibility clearance) highlighted on the chart
 - **Scenario compare** — layout A vs B occupancy and clearance outcomes
 
 ```mermaid
@@ -213,7 +216,7 @@ flowchart LR
   Room[Room + use group]
   Furn[Furniture / fixtures]
   RoT[Rules of thumb advisory]
-  Codes[C13 IBC + accessibility]
+  Codes[S-B2 IBC + accessibility]
   Chart[Space analysis chart]
   Room --> Chart
   Furn --> Chart
@@ -227,7 +230,7 @@ flowchart LR
 - Bridge architectural IBC concepts (occupancy group, load factor) to interior layout (seating, clear paths)
 - Export summary to Presentations or drawing set notes (later slice)
 
-**Deps:** **S-B2** Codes, optional **S-I1** Inventory for product dimensions, **C13** for live rule values.
+**Deps:** **S-B2** Codes (live rule values), optional **S-I1** Inventory for product dimensions.
 
 **Failure classes:** Code violations → `required` warnings in analysis; rules-of-thumb → `advisory` only.
 
@@ -306,5 +309,6 @@ High-priority patterns: Excel/CSV export (Inventory, Design FF&E), import valida
 - Auth (session cookie)
 - FileStore (C6)
 - Composition slots + theme (C10, **C12** planned)
-- Codes provider (**C13** planned) — Build S-B2/S-B3
 - Generated TypeScript SDK from OpenAPI
+
+> **Codes (IBC / accessibility)** are **not** consumed from Core — they are Build module domain logic (S-B2/S-B3) with their own schema and external sync.
