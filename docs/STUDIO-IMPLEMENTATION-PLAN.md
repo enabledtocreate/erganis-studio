@@ -12,7 +12,7 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 | Phase | Module | Slice | Status | Core deps |
 |-------|--------|-------|--------|-----------|
 | **Ref** | Hello-world | — | Done | C2 |
-| **S0** | Studio shell | 0 | Planned | C1 |
+| **S0** | Studio shell | 0 | Planned | C1, C16, `erganis-ui` |
 | **S-D1** | Documents | 1 | Planned | C2, C6 |
 | **S-D2** | Documents | 2 | Planned | C7, S0 |
 | **S-D3** | Documents | 3 | Planned | S0 client, RBAC |
@@ -26,7 +26,8 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 | **S-Pr1** | Presentations | 1 | Planned | S-I1, S-Des1 |
 | **S-B1** | Build | 1 | Planned | S-D1, C3 |
 | **S-B2** | Build — Codes | 2 | Planned | S-B1, C2, C9 |
-| **S-B3** | Build — Space analysis | 3 | Planned | S-B2, S-I1 optional |
+| **S-B3** | Build — Space analysis | 3 | Planned | S-B2, S-B4, S-I1 optional |
+| **S-B4** | Build — Standards | 4 | Planned | S-B2, S-B1 |
 | **S-Bus1** | Business | 1 | Planned | Reports S-R1 (later) |
 | **S-R1** | Reports | 1 | Planned | Multiple modules |
 | **S-N1** | Notes | 1 | Planned | C2 |
@@ -50,14 +51,17 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 ## S0 — Studio web shell
 
 **Path:** `studio/apps/studio/`, `studio/shared/`  
-**Delivers:** Next.js shell, shadcn tokens, generated API client, login flow to Core auth.
+**Delivers:** Next.js shell wired to Core auth and **`erganis-ui`** (`@erganis/ui-react` + `@erganis/ui-shadcn`).
 
 | Item | Detail |
 |------|--------|
-| UI stack | Next.js + React + TypeScript + shadcn/ui + Tailwind |
-| Shared layer | `studio/shared/` — components, tokens, API clients |
+| UI stack | Next.js + `@erganis/ui-shadcn` (not raw shadcn only in `shared/`) |
+| Shared layer | `studio/shared/` — app routing, Studio-specific layout; re-exports UI packages |
 | Auth | Session cookie flow to Core C1 |
-| Composition | Consume `GET /composition/slots` (C10) |
+| Composition | `SlotOutlet`, `ThemeProvider` from ui-shadcn; Core C10/C12 APIs |
+| Module UI | Manifest `contributions.ui` resolved via ui-react registry |
+
+See [`UI-ARCHITECTURE.md`](../../ui/docs/UI-ARCHITECTURE.md).
 
 **Blocks:** All Surface UI slices (S-D2+, module dashboards).
 
@@ -198,8 +202,9 @@ IBC and accessibility standards change by edition and jurisdiction. Build must n
 | **Footprint & clearance** | Per-item dimensions + required clearances; stack vs plan view summaries |
 | **Occupant load** | User group / use type → occupant count via S-B2 IBC load factors |
 | **Circulation** | Aisle width, door swing zones, path of travel — designer standards + code mins |
-| **Rules of thumb** | General designer standards (conference seats per area, kitchen work triangle hints, etc.) — **advisory** layer separate from binding code |
-| **Code cross-check** | Compare calculated area / egress / fixtures against S-B2 Codes rules — pass / warn / fail |
+| **Rules of thumb** | General designer heuristics (conference seats/area, etc.) — **advisory**; may align with S-B4 Standards |
+| **Code cross-check** | Compare against S-B2 Codes — pass / warn / fail |
+| **Standards cross-check** | Compare against S-B4 (WELL/LEED criteria, firm standards) — pass / warn / fail |
 
 ### Chart system (concept)
 
@@ -217,11 +222,13 @@ flowchart LR
   Furn[Furniture / fixtures]
   RoT[Rules of thumb advisory]
   Codes[S-B2 IBC + accessibility]
+  Standards[S-B4 professional standards]
   Chart[Space analysis chart]
   Room --> Chart
   Furn --> Chart
   RoT --> Chart
   Codes --> Chart
+  Standards --> Chart
 ```
 
 ### Designer outcomes
@@ -230,9 +237,40 @@ flowchart LR
 - Bridge architectural IBC concepts (occupancy group, load factor) to interior layout (seating, clear paths)
 - Export summary to Presentations or drawing set notes (later slice)
 
-**Deps:** **S-B2** Codes (live rule values), optional **S-I1** Inventory for product dimensions.
+**Deps:** **S-B2** Codes, **S-B4** Standards (optional cross-check), optional **S-I1** Inventory for product dimensions.
 
-**Failure classes:** Code violations → `required` warnings in analysis; rules-of-thumb → `advisory` only.
+**Failure classes:** Code violations → `required` warnings; standards → `required` or `advisory` by rule class; rules-of-thumb → `advisory` only.
+
+---
+
+## S-B4 — Build — Standards (professional & certification criteria)
+
+**Path:** `studio/modules/build/` (standards submodule)  
+**Delivers:** **Standards** domain logic — professional practice rules, firm standards, and **certification criteria** (WELL, LEED, ASID guidelines, etc.) applied on projects.
+
+> **Distinct from Codes (S-B2) and Nomodeion (Lyceum).** **Codes** = binding regulatory (IBC/ADA). **Standards** = professional and certification criteria on live projects. **Nomodeion** = study/exam prep for those credentials — not project lookup.
+
+### Layering (inside the Build module)
+
+1. **Standards store** — `build.standards`, `build.standard_editions`, firm overrides; sync via module job where external bodies publish updates
+2. **Query layer** — applicable standards for project type, certification target (WELL, LEED), firm policy
+3. **Build UI** — checklist and guidance on drawing sets and space analysis (pairs with S-B3)
+
+### Planned capabilities
+
+| Area | Examples |
+|------|----------|
+| **WELL / LEED** | Credit/criteria checklist on project — not exam content (see Nomodeion) |
+| **Firm standards** | FF&E clearance conventions, naming, submittal requirements |
+| **Professional practice** | ASID-aligned practice notes; advisory overlays |
+| **Edition tracking** | Active WELL/LEED version vs project registration |
+
+### Surfaces
+
+- `build.standards` load — applicable standards summary for project/room
+- Envelope save for designer notes and standard-pack sync triggers
+
+**Core deps:** C2, C9 (optional sync job). **Lyceum link:** Nomodeion L-N5 — “apply on project” from study paths.
 
 ---
 
@@ -278,8 +316,10 @@ studio/
 ├── apps/client/           # Client portal (web)
 ├── modules/               # First-party plugins
 ├── modules/third-party/   # External modules
-└── shared/                # shadcn/ui + Tailwind, API clients, sync layer
+└── shared/                # App glue; re-exports @erganis/ui-*
 ```
+
+**UI components:** [`erganis-ui`](../../ui/docs/UI-ARCHITECTURE.md) — not duplicated in `studio/shared/` long-term.
 
 ---
 
@@ -308,7 +348,14 @@ High-priority patterns: Excel/CSV export (Inventory, Design FF&E), import valida
 - Operation envelope (`POST /operations/execute`)
 - Auth (session cookie)
 - FileStore (C6)
-- Composition slots + theme (C10, **C12** planned)
-- Generated TypeScript SDK from OpenAPI
+- Composition slots + theme (C10, C12)
+- Generated TypeScript SDK from OpenAPI (C15)
 
-> **Codes (IBC / accessibility)** are **not** consumed from Core — they are Build module domain logic (S-B2/S-B3) with their own schema and external sync.
+## Consumes from erganis-ui
+
+- `@erganis/ui-react` — headless hooks (`useSurfaceLoad`, `useTheme`, `useOperation`)
+- `@erganis/ui-shadcn` — Shell, SlotOutlet, ThemeProvider, default components
+
+See [`UI-ARCHITECTURE.md`](../../ui/docs/UI-ARCHITECTURE.md).
+
+> **Codes (S-B2) and Standards (S-B4)** are Build module domain logic — not Core services.
