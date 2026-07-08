@@ -1,0 +1,16 @@
+{
+  "name": "@erganis/module-hello-world",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@erganis/platform": "file:../../../core/packages/typescript"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

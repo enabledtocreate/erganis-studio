@@ -30,7 +30,7 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 | **S-B4** | Build — Standards | 4 | Planned | S-B2, S-B1 |
 | **S-Bus1** | Business | 1 | Planned | Reports S-R1 (later) |
 | **S-R1** | Reports | 1 | Planned | Multiple modules |
-| **S-N1** | Notes | 1 | Planned | C2 |
+| **S-N1** | Notes | 1 | Planned (docs only) | `erganis-notes` N0–N1 |
 | **S-Ago1** | Agora (org) | 1 | Planned | Agora API, C2 |
 | **S-3P** | Third-party | — | Planned | C4 |
 
@@ -288,7 +288,14 @@ flowchart LR
 
 ## S-N1 — Notes
 
-**Delivers:** Meeting notes; links to Documents/Communications.
+**Path:** `notes/modules/notes/` (repo **`erganis-notes`**, submodule `notes/`)  
+**Architecture:** [`NOTES-ARCHITECTURE.md`](../../notes/docs/NOTES-ARCHITECTURE.md) · **Plan:** [`NOTES-IMPLEMENTATION-PLAN.md`](../../notes/docs/NOTES-IMPLEMENTATION-PLAN.md)
+
+**Delivers (when implemented):** Constructable document kinds, annotations, dialogue, bibliography, connection-level ACL. Studio S-N1 wires Studio/Client UI; module logic lives in `erganis-notes`.
+
+**Status:** Documentation + repo scaffold only — not implementation rush. Core **audit** (C9) and **search** cover platform concerns.
+
+**Deps:** Core C2+; **Business (S-Bus1) requires Notes enabled.**
 
 ---
 

@@ -1,0 +1,26 @@
+{
+  "id": "erganis.hello-world",
+  "name": "Hello World Stub",
+  "version": "0.1.0",
+  "erganisCoreVersion": "^0.1.0",
+  "description": "Phase 2 stub module for envelope smoke tests",
+  "entryPoint": "./dist/index.js",
+  "contributions": {
+    "operations": [
+      {
+        "surfaceId": "stub",
+        "action": "save",
+        "stepId": "hello-save",
+        "handler": "pingSave",
+        "failureClass": "required",
+        "phase": "db"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "version": "001",
+      "path": "./migrations/001_hello_world.sql"
+    }
+  ]
+}
