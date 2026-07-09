@@ -1,0 +1,56 @@
+{
+  "name": "@erganis/studio-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Erganis Studio desktop shell (Electron)",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "npm run build:electron && concurrently -k \"npm run dev -w @erganis/studio-web\" \"wait-on http://localhost:3000 && cross-env STUDIO_DEV=true electron .\"",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run build:electron && npm run build -w @erganis/studio-web && node scripts/prepare-standalone.js",
+    "package": "npm run build && electron-builder --mac --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win"
+  },
+  "dependencies": {
+    "get-port": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.erganis.studio",
+    "productName": "Erganis Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/standalone",
+        "to": "standalone",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

@@ -1,0 +1,4 @@
+release/
+dist-electron/
+resources/standalone/
+node_modules/
