@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #faf8f5;
+  --foreground: #1c1917;
+  --paper: #ffffff;
+  --border-warm: #e7e2db;
+  --accent: #2c2a28;
+  --accent-hover: #1c1917;
+  --muted: #6f6c66;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  min-height: 100vh;
+}
+
+@layer components {
+  .studio-input {
+    @apply w-full rounded-studio border border-warm-border bg-paper px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-ink-700 focus:outline-none focus:ring-1 focus:ring-ink-700;
+  }
+
+  .studio-label {
+    @apply block text-xs font-medium uppercase tracking-wide text-ink-500;
+  }
+}

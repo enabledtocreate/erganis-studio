@@ -1,6 +1,6 @@
 # Erganis Studio — Implementation Plan
 
-> **Status:** **Ref** (hello-world) done; **S0+** not started.  
+> **Status:** **Ref** (hello-world) done; **S0** done; **S-I1** (inventory simple) in progress.  
 > **Product plan:** [§7 Studio](../../../docs/erganis-product-plan.md#7-studio) · **Core deps:** [CORE-IMPLEMENTATION-PLAN](../../core/docs/temp/CORE-IMPLEMENTATION-PLAN.md) · **Index:** [IMPLEMENTATION-PLANS](../../../docs/IMPLEMENTATION-PLANS.md)
 
 Studio ships as **per-module slices** — schema + handlers first (Nest modules loaded by Core), then Surface UI in `studio/apps/studio`. Complete Core **C3–C7** before the first real module ships end-to-end in the UI.
@@ -12,11 +12,11 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 | Phase | Module | Slice | Status | Core deps |
 |-------|--------|-------|--------|-----------|
 | **Ref** | Hello-world | — | Done | C2 |
-| **S0** | Studio shell | 0 | Planned | C1, C16, `erganis-ui` |
+| **S0** | Studio shell | 0 | Done (Refined Atelier draft) | C1, C16 |
 | **S-D1** | Documents | 1 | Planned | C2, C6 |
 | **S-D2** | Documents | 2 | Planned | C7, S0 |
 | **S-D3** | Documents | 3 | Planned | S0 client, RBAC |
-| **S-I1** | Inventory | 1 | Planned | C2 |
+| **S-I1** | Inventory | 1 | In progress | C2, C7, S0 |
 | **S-I2** | Inventory | 2 | Planned | C3 |
 | **S-I3** | Inventory | 3 | Planned | Presentations S-Pr1 |
 | **S-P1** | Planner | 1 | Planned | C2, C7 |
@@ -48,20 +48,32 @@ Studio ships as **per-module slices** — schema + handlers first (Nest modules 
 
 ---
 
-## S0 — Studio web shell
+## S0 — Studio web + desktop shell
 
-**Path:** `studio/apps/studio/`, `studio/shared/`  
-**Delivers:** Next.js shell wired to Core auth and **`erganis-ui`** (`@erganis/ui-react` + `@erganis/ui-shadcn`).
+**Status:** Done (web + Electron scaffold)
+
+**Paths:**
+- Web: `studio/apps/studio/` (`@erganis/studio-web`)
+- Desktop: `studio/apps/desktop/` (`@erganis/studio-desktop`)
+- Shared: `studio/shared/` (`@erganis/studio-shared`)
+
+**Delivers:** Next.js shell wired to Core auth; Electron wraps the **same** UI for Mac and Windows.
+
+| Layer | Stack | Commands |
+|-------|-------|----------|
+| **Web** | Next.js 14 + Tailwind | `npm run dev:web`, `npm run build:web` |
+| **Desktop** | Electron 33 + electron-builder | `npm run dev:desktop`, `npm run package:desktop:mac`, `npm run package:desktop:win` |
+| **Shared** | Core API client (session cookie) | `@erganis/studio-shared` |
 
 | Item | Detail |
 |------|--------|
-| UI stack | Next.js + `@erganis/ui-shadcn` (not raw shadcn only in `shared/`) |
-| Shared layer | `studio/shared/` — app routing, Studio-specific layout; re-exports UI packages |
-| Auth | Session cookie flow to Core C1 |
-| Composition | `SlotOutlet`, `ThemeProvider` from ui-shadcn; Core C10/C12 APIs |
-| Module UI | Manifest `contributions.ui` resolved via ui-react registry |
+| Auth | Session cookie flow to Core C1 (`credentials: 'include'` + CORS) |
+| Desktop prod | Next `standalone` embedded; Electron spawns local server on `127.0.0.1` |
+| Desktop dev | Concurrently runs Next dev + Electron → `http://localhost:3000` |
+| UI | Tailwind **Refined Atelier** shell ([STUDIO-DESIGN.md](../docs/STUDIO-DESIGN.md)); **`erganis-ui`** / Shadcn at UI2 |
+| Offline | Deferred — requires Core C11 sync + local replica |
 
-See [`UI-ARCHITECTURE.md`](../../ui/docs/UI-ARCHITECTURE.md).
+See [`studio/README.md`](../README.md) and [`UI-ARCHITECTURE.md`](../../ui/docs/UI-ARCHITECTURE.md).
 
 **Blocks:** All Surface UI slices (S-D2+, module dashboards).
 
@@ -94,7 +106,12 @@ See [`UI-ARCHITECTURE.md`](../../ui/docs/UI-ARCHITECTURE.md).
 
 ## S-I1 — Inventory (CRUD)
 
-**Delivers:** Product/material CRUD; `inventory.*` schema; envelope `save` (`phase: db`, `failureClass: required`).
+**Path:** `studio/modules/inventory/`  
+**Status:** In progress — backend + simple `/inventory` Surface UI
+
+**Delivers:** Product/material CRUD; `inventory.*` schema; Surface `inventory` load/save; Studio catalog page (list + add form).
+
+**Core deps:** C2 orchestrator, **C7 Surface load API**, S0 shell.
 
 ---
 

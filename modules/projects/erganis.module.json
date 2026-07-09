@@ -1,0 +1,54 @@
+{
+  "id": "erganis.projects",
+  "name": "Projects",
+  "version": "0.1.0",
+  "erganisCoreVersion": "^0.1.0",
+  "description": "Projects, rooms, and inventory assignments (S-Proj0)",
+  "entryPoint": "./dist/index.js",
+  "contributions": {
+    "operations": [
+      {
+        "surfaceId": "project",
+        "action": "load",
+        "stepId": "project-list",
+        "handler": "loadProjects",
+        "failureClass": "required",
+        "phase": "db"
+      },
+      {
+        "surfaceId": "project",
+        "action": "save",
+        "stepId": "project-save",
+        "handler": "saveProject",
+        "failureClass": "required",
+        "phase": "db"
+      },
+      {
+        "surfaceId": "room",
+        "action": "save",
+        "stepId": "room-save",
+        "handler": "saveRoom",
+        "failureClass": "required",
+        "phase": "db"
+      },
+      {
+        "surfaceId": "assignment",
+        "action": "save",
+        "stepId": "assignment-save",
+        "handler": "saveAssignment",
+        "failureClass": "required",
+        "phase": "db"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "version": "001",
+      "path": "./migrations/001_projects_rooms.sql"
+    },
+    {
+      "version": "002",
+      "path": "./migrations/002_item_assignments.sql"
+    }
+  ]
+}

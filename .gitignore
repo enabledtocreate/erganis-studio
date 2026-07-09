@@ -1,7 +1,5 @@
 node_modules/
+.next/
+release/
 dist/
-build/
-.env
-.env.local
-*.log
-.DS_Store
+*.tsbuildinfo

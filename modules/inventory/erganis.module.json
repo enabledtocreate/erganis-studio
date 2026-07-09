@@ -1,0 +1,34 @@
+{
+  "id": "erganis.inventory",
+  "name": "Inventory",
+  "version": "0.1.0",
+  "erganisCoreVersion": "^0.1.0",
+  "description": "Product and material catalog (S-I1 simple CRUD)",
+  "entryPoint": "./dist/index.js",
+  "contributions": {
+    "operations": [
+      {
+        "surfaceId": "inventory",
+        "action": "load",
+        "stepId": "inventory-list",
+        "handler": "loadProducts",
+        "failureClass": "required",
+        "phase": "db"
+      },
+      {
+        "surfaceId": "inventory",
+        "action": "save",
+        "stepId": "inventory-save",
+        "handler": "saveProduct",
+        "failureClass": "required",
+        "phase": "db"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "version": "001",
+      "path": "./migrations/001_inventory_products.sql"
+    }
+  ]
+}
